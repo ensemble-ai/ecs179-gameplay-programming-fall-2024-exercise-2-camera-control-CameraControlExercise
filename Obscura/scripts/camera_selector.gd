@@ -11,6 +11,8 @@ func _ready():
 			camera.current = false
 	if(len(cameras) > current_controller+1):
 		cameras[current_controller].make_current()
+		
+		
 
 
 func _process(_delta):
