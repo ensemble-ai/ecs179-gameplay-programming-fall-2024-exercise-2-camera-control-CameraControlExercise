@@ -1,46 +1,44 @@
-class_name PushBox
+class_name HorizontalScroll
 extends CameraControllerBase
 
-
-@export var box_width:float = 10.0
-@export var box_height:float = 10.0
-
+@export var top_left: Vector2 = Vector2(-5, 5)  
+@export var bottom_right: Vector2 = Vector2(5, -5)
+@export var autoscroll_speed: Vector3 = Vector3(8.0, 0.0, 0.0)
 
 func _ready() -> void:
-	super()
 	position = target.position
-	
+	super()
 
 func _process(delta: float) -> void:
 	if !current:
 		return
-	
+
+	position.x += autoscroll_speed.x * delta
+	position.z += autoscroll_speed.z * delta
+
+	keep_player_within_bounds()
+
 	if draw_camera_logic:
 		draw_logic()
-	
-	var tpos = target.global_position
-	var cpos = global_position
-	
-	#boundary checks
-	#left
-	var diff_between_left_edges = (tpos.x - target.WIDTH / 2.0) - (cpos.x - box_width / 2.0)
-	if diff_between_left_edges < 0:
-		global_position.x += diff_between_left_edges
-	#right
-	var diff_between_right_edges = (tpos.x + target.WIDTH / 2.0) - (cpos.x + box_width / 2.0)
-	if diff_between_right_edges > 0:
-		global_position.x += diff_between_right_edges
-	#top
-	var diff_between_top_edges = (tpos.z - target.HEIGHT / 2.0) - (cpos.z - box_height / 2.0)
-	if diff_between_top_edges < 0:
-		global_position.z += diff_between_top_edges
-	#bottom
-	var diff_between_bottom_edges = (tpos.z + target.HEIGHT / 2.0) - (cpos.z + box_height / 2.0)
-	if diff_between_bottom_edges > 0:
-		global_position.z += diff_between_bottom_edges
-		
+
 	super(delta)
 
+func keep_player_within_bounds() -> void:
+	var left_edge_x = position.x + top_left.x
+	var right_edge_x = position.x + bottom_right.x
+	var top_edge_z = position.z + top_left.y
+	var bottom_edge_z = position.z + bottom_right.y
+	
+	if target.global_position.x < left_edge_x:
+		target.global_position.x = left_edge_x
+
+	if target.global_position.x > right_edge_x:
+		target.global_position.x = right_edge_x
+
+	if target.global_position.z > top_edge_z:
+		target.global_position.z = top_edge_z
+	elif target.global_position.z < bottom_edge_z:
+		target.global_position.z = bottom_edge_z
 
 func draw_logic() -> void:
 	var mesh_instance := MeshInstance3D.new()
@@ -50,11 +48,11 @@ func draw_logic() -> void:
 	mesh_instance.mesh = immediate_mesh
 	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	
-	var left:float = -box_width / 2
-	var right:float = box_width / 2
-	var top:float = -box_height / 2
-	var bottom:float = box_height / 2
-	
+	var left = top_left.x
+	var right = bottom_right.x
+	var top = top_left.y
+	var bottom = bottom_right.y
+
 	immediate_mesh.surface_begin(Mesh.PRIMITIVE_LINES, material)
 	immediate_mesh.surface_add_vertex(Vector3(right, 0, top))
 	immediate_mesh.surface_add_vertex(Vector3(right, 0, bottom))
