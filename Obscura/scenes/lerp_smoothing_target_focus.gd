@@ -29,11 +29,7 @@ func _process(delta: float) -> void:
 	var dist = (tpos - cpos).length()
 	var direction = (tpos - cpos).normalized()
 	
-	var target_speed:int = target.BASE_SPEED
-	if Input.is_action_pressed("ui_accept"):
-		target_speed = target.HYPER_SPEED
-	else:
-		target_speed = target.BASE_SPEED
+
 		
 	if target.velocity == Vector3(0, 0, 0):
 		timer += delta * 1
