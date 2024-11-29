@@ -1,9 +1,13 @@
-class_name PushBox
+class_name AutoScroll
 extends CameraControllerBase
 
 
-@export var box_width:float = 10.0
-@export var box_height:float = 10.0
+@export var top_teft:Vector2 = Vector2(8, 4)
+@export var bottom_right:Vector2 = Vector2(8, 4)
+@export var autoscroll_speed:Vector3  = Vector3(0, 0, -10)
+
+var box_width:float = abs(top_teft.x) + abs(bottom_right.x)
+var box_height:float = abs(top_teft.y) + abs(bottom_right.y)
 
 
 func _ready() -> void:
@@ -18,6 +22,12 @@ func _process(delta: float) -> void:
 	
 	if draw_camera_logic:
 		draw_logic()
+		
+	# The camera and target global postion should be the same.
+	global_position += autoscroll_speed * delta
+	
+	# Adjust the vessel speed.
+	target.global_position += autoscroll_speed * delta
 	
 	var tpos = target.global_position
 	var cpos = global_position
@@ -26,19 +36,24 @@ func _process(delta: float) -> void:
 	#left
 	var diff_between_left_edges = (tpos.x - target.WIDTH / 2.0) - (cpos.x - box_width / 2.0)
 	if diff_between_left_edges < 0:
-		global_position.x += diff_between_left_edges
+		target.global_position += autoscroll_speed * delta
+		target.global_position.x -= diff_between_left_edges
 	#right
 	var diff_between_right_edges = (tpos.x + target.WIDTH / 2.0) - (cpos.x + box_width / 2.0)
 	if diff_between_right_edges > 0:
-		global_position.x += diff_between_right_edges
+		target.global_position += autoscroll_speed * delta
+		target.global_position.x -= diff_between_right_edges
 	#top
 	var diff_between_top_edges = (tpos.z - target.HEIGHT / 2.0) - (cpos.z - box_height / 2.0)
 	if diff_between_top_edges < 0:
-		global_position.z += diff_between_top_edges
+		target.global_position += autoscroll_speed * delta
+		target.global_position.z -= (diff_between_top_edges)
 	#bottom
 	var diff_between_bottom_edges = (tpos.z + target.HEIGHT / 2.0) - (cpos.z + box_height / 2.0)
 	if diff_between_bottom_edges > 0:
-		global_position.z += diff_between_bottom_edges
+		target.global_position += autoscroll_speed * delta
+		target.global_position.z -= diff_between_bottom_edges
+	
 		
 	super(delta)
 
@@ -51,12 +66,14 @@ func draw_logic() -> void:
 	mesh_instance.mesh = immediate_mesh
 	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	
+	
 	var left:float = -box_width / 2
 	var right:float = box_width / 2
 	var top:float = -box_height / 2
 	var bottom:float = box_height / 2
 	
 	immediate_mesh.surface_begin(Mesh.PRIMITIVE_LINES, material)
+	
 	immediate_mesh.surface_add_vertex(Vector3(right, 0, top))
 	immediate_mesh.surface_add_vertex(Vector3(right, 0, bottom))
 	
@@ -68,6 +85,8 @@ func draw_logic() -> void:
 	
 	immediate_mesh.surface_add_vertex(Vector3(left, 0, top))
 	immediate_mesh.surface_add_vertex(Vector3(right, 0, top))
+	
+	
 	immediate_mesh.surface_end()
 
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
